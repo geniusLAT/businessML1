@@ -1,6 +1,7 @@
 import pika
 import numpy as np
 import json
+import time
 from sklearn.datasets import load_diabetes
  
 # Создаём бесконечный цикл для отправки сообщений в очередь
@@ -34,5 +35,7 @@ while True:
  
         # Закрываем подключение
         connection.close()
+
+        time.sleep(10)
     except:
         print('Не удалось подключиться к очереди')
