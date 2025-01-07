@@ -36,8 +36,8 @@ print("metric started")
 while True:
     try:
         # Создаём подключение к серверу на локальном хосте
-        #connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
+        #connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
         channel = connection.channel()
     
         # Объявляем очередь y_true

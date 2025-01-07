@@ -5,18 +5,25 @@ from watchdog.events import FileSystemEventHandler
 import time
 import os
 
+test_file_name = './logs/test.txt'
 png_file_name = './logs/error_distribution.png'
 csv_file_name = "./logs\metric_log.csv"
 folder_name = "./logs\metric_log.csv"  
+csv_file_name = "./logs/metric_log.csv"
+folder_name = "./logs/metric_log.csv"  
+
+def log(text):
+    with open(test_file_name, 'a') as log:
+        log.write(text + '\n')
 
 class CSVEventHandler(FileSystemEventHandler):
     def __init__(self, csv_file):
         self.csv_file = csv_file
 
     def on_modified(self, event):
-        print(f"on_modified {event.src_path } - {self.csv_file}")
+        log(f"on_modified {event.src_path } - {self.csv_file}")
         if event.src_path == self.csv_file:
-            print(f"{self.csv_file} изменен. Перестраиваю гистограмму...")
+            log(f"{self.csv_file} изменен. Перестраиваю гистограмму...")
             self.plot_histogram()
 
     def plot_histogram(self):
@@ -34,14 +41,14 @@ class CSVEventHandler(FileSystemEventHandler):
         # Сохранение гистограммы в файл
         plt.savefig(png_file_name)
         plt.close()
-        print(f"Гистограмма сохранена в {png_file_name}")
+        log(f"Гистограмма сохранена в {png_file_name}")
 
 def monitor_csv(csv_file):
     event_handler = CSVEventHandler(csv_file)
     observer = Observer()
     observer.schedule(event_handler, path=os.path.dirname(folder_name), recursive=False)
     observer.start()
-    print(f"Начато отслеживание изменений в {folder_name}")
+    log(f"Начато отслеживание изменений в {folder_name}")
 
     try:
         while True:
@@ -50,6 +57,16 @@ def monitor_csv(csv_file):
         observer.stop()
     observer.join()
 
-if __name__ == "__main__":
-    csv_file_path = csv_file_name
-    monitor_csv(csv_file_path)
+with open(test_file_name, 'w') as logfile:
+        logfile.write('plot is alive \n')
+
+#if __name__ == "__main__":
+while True:
+    for i in range(50):
+        log("I am alive")
+    try:
+        time.sleep(10)
+        csv_file_path = csv_file_name
+        monitor_csv(csv_file_path)
+    except Exception as e:
+        log("plot failed with {e}")
