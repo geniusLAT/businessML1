@@ -2,10 +2,14 @@ import pika
 import json
 import time
  
+table_header= 'id,y_true,y_pred,absolute_error'
+
 try:
     answer_string ="log file started"
     with open('./logs/labels_log.txt', 'a') as log:
         log.write(answer_string +'\n')
+    with open('./logs/metric_log.csv', 'w') as log:
+        log.write(table_header +'\n')
 except Exception as e:
     print('Error during creating file',e)
 
@@ -13,18 +17,27 @@ true_dicts = []
 pred_dicts = []
 
 def pair_found(true_dict, pred_dict):
+    if true_dict['id'] != pred_dict['id']:
+        return
     if true_dicts.__contains__(true_dict):
         true_dicts.remove(true_dict)
     if pred_dicts.__contains__(pred_dict):
         pred_dicts.remove(pred_dict)
     print(f"pair found {true_dict['id']}")
 
+    id = true_dict['id']
+    y_true = true_dict['body']
+    y_pred = pred_dict['body']
+    absolute_error = abs(y_true - y_pred)
+    with open('./logs/metric_log.csv', 'a') as log:
+        log.write(f'{id},{y_true},{y_pred},{absolute_error}\n')
+
 print("metric started")
 while True:
     try:
         # Создаём подключение к серверу на локальном хосте
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
-        #connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        #connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
         channel = connection.channel()
     
         # Объявляем очередь y_true
