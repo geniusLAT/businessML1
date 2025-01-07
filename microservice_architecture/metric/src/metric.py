@@ -1,35 +1,73 @@
 import pika
 import json
+import time
  
-try:
-    # Создаём подключение к серверу на локальном хосте
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
-    channel = connection.channel()
-   
-    # Объявляем очередь y_true
-    channel.queue_declare(queue='y_true')
-    # Объявляем очередь y_pred
-    channel.queue_declare(queue='y_pred')
- 
-    # Создаём функцию callback для обработки данных из очереди
-    def callback(ch, method, properties, body):
-        print(f'Из очереди {method.routing_key} получено значение {json.loads(body)}')
- 
-    # Извлекаем сообщение из очереди y_true
-    channel.basic_consume(
-        queue='y_true',
-        on_message_callback=callback,
-        auto_ack=True
-    )
-    # Извлекаем сообщение из очереди y_pred
-    channel.basic_consume(
-        queue='y_pred',
-        on_message_callback=callback,
-        auto_ack=True
-    )
- 
-    # Запускаем режим ожидания прихода сообщений
-    print('...Ожидание сообщений, для выхода нажмите CTRL+C')
-    channel.start_consuming()
-except:
-    print('Не удалось подключиться к очереди')
+true_dicts = []
+pred_dicts = []
+
+def pair_found(true_dict, pred_dict):
+    if true_dicts.__contains__(true_dict):
+        true_dicts.remove(true_dict)
+    if pred_dicts.__contains__(pred_dict):
+        pred_dicts.remove(pred_dict)
+    print(f"pair found {true_dict['id']}")
+
+print("metric started")
+while True:
+    try:
+        # Создаём подключение к серверу на локальном хосте
+        #connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        channel = connection.channel()
+    
+        # Объявляем очередь y_true
+        channel.queue_declare(queue='y_true')
+        # Объявляем очередь y_pred
+        channel.queue_declare(queue='y_pred')
+    
+        # Создаём функцию callback для обработки данных из очереди
+        def callback_true_dict(ch, method, properties, body):
+            #print(f'Из очереди {method.routing_key} получено значение {json.loads(body)}')
+            true_dict = json.loads(body)
+            id = true_dict['id']
+            body = true_dict['body'] 
+            print(f'true id:{ id },   true body:{body }')
+
+            for pred_dict in pred_dicts:
+                if pred_dict['id'] == id:
+                    pair_found(true_dict, pred_dict)
+                    return
+            true_dicts.append(true_dict)
+        
+        def callback_pred_dict(ch, method, properties, body):
+            #print(f'Из очереди {method.routing_key} получено значение {json.loads(body)}')
+            pred_dict = json.loads(body)
+            id = pred_dict['id']
+            body = pred_dict['body'] 
+            print(f'pred id:{ id },   pred body:{body }')
+
+            for true_dict in true_dicts:
+                if true_dict['id'] == id:
+                    pair_found(true_dict, pred_dict)
+                    return
+            pred_dicts.append(pred_dict)
+    
+        # Извлекаем сообщение из очереди y_true
+        channel.basic_consume(
+            queue='y_true',
+            on_message_callback=callback_true_dict,
+            auto_ack=True
+        )
+        # Извлекаем сообщение из очереди y_pred
+        channel.basic_consume(
+            queue='y_pred',
+            on_message_callback=callback_pred_dict,
+            auto_ack=True
+        )
+    
+        # Запускаем режим ожидания прихода сообщений
+        print('...Ожидание сообщений, для выхода нажмите CTRL+C')
+        channel.start_consuming()
+    except Exception as e:
+        time.sleep(10)
+        print('0_0 Не удалось подключиться к очереди '+str(e) + "\n -_-" + str(e.with_traceback))
