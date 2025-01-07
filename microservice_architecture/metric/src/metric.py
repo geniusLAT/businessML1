@@ -2,6 +2,13 @@ import pika
 import json
 import time
  
+try:
+    answer_string ="log file started"
+    with open('./logs/labels_log.txt', 'a') as log:
+        log.write(answer_string +'\n')
+except Exception as e:
+    print('Error during creating file',e)
+
 true_dicts = []
 pred_dicts = []
 
@@ -16,8 +23,8 @@ print("metric started")
 while True:
     try:
         # Создаём подключение к серверу на локальном хосте
-        #connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
+        #connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
         channel = connection.channel()
     
         # Объявляем очередь y_true

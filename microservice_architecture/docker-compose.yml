@@ -29,3 +29,5 @@ services:
       - rabbitmq
       - features
       - model
+    volumes:
+      - ./logs/:/usr/src/app/logs/
