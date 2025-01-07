@@ -5,15 +5,14 @@ from watchdog.events import FileSystemEventHandler
 import time
 import os
 
-test_file_name = './logs/test.txt'
+plot_log_file_name = './logs/plot_log.txt'
 png_file_name = './logs/error_distribution.png'
-csv_file_name = "./logs\metric_log.csv"
-folder_name = "./logs\metric_log.csv"  
+ 
 csv_file_name = "./logs/metric_log.csv"
-folder_name = "./logs/metric_log.csv"  
+folder_name = csv_file_name 
 
 def log(text):
-    with open(test_file_name, 'a') as log:
+    with open(plot_log_file_name, 'a') as log:
         log.write(text + '\n')
 
 class CSVEventHandler(FileSystemEventHandler):
@@ -21,7 +20,6 @@ class CSVEventHandler(FileSystemEventHandler):
         self.csv_file = csv_file
 
     def on_modified(self, event):
-        log(f"on_modified {event.src_path } - {self.csv_file}")
         if event.src_path == self.csv_file:
             log(f"{self.csv_file} изменен. Перестраиваю гистограмму...")
             self.plot_histogram()
@@ -32,7 +30,7 @@ class CSVEventHandler(FileSystemEventHandler):
 
         # Построение гистограммы абсолютной ошибки
         plt.figure(figsize=(10, 6))
-        plt.hist(df['absolute_error'], bins=20, color='blue', alpha=0.7)
+        plt.hist(df['absolute_error'], bins=20, color='blue', edgecolor="black",alpha=0.7)
         plt.title('Гистограмма абсолютной ошибки')
         plt.xlabel('Абсолютная ошибка')
         plt.ylabel('Частота')
@@ -57,13 +55,11 @@ def monitor_csv(csv_file):
         observer.stop()
     observer.join()
 
-with open(test_file_name, 'w') as logfile:
+with open(plot_log_file_name, 'w') as logfile:
         logfile.write('plot is alive \n')
 
-#if __name__ == "__main__":
 while True:
-    for i in range(50):
-        log("I am alive")
+    log("Plotter restarted")
     try:
         time.sleep(10)
         csv_file_path = csv_file_name

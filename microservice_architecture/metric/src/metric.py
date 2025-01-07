@@ -90,4 +90,4 @@ while True:
         channel.start_consuming()
     except Exception as e:
         time.sleep(10)
-        print('0_0 Не удалось подключиться к очереди '+str(e) + "\n -_-" + str(e.with_traceback))
+        print(' Не удалось подключиться к очереди '+str(e) + "\n " + str(e.with_traceback))
